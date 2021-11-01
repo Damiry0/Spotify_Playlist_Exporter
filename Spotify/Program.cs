@@ -4,25 +4,28 @@ using System;
 using SpotifyAPI.Web.Auth;
 using SpotifyAPI.Web;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using static SpotifyAPI.Web.Scopes;
-using Swan.Logging;
 
-namespace Example.CLI.PersistentConfig
+namespace Spotify
 {
-  public class Program
+  public static class Program
   {
     private const string CredentialsPath = "credentials.json";
     private static readonly string? clientId = "0dfe25d5acc5413ab2376db48064fb41";
     private static readonly EmbedIOAuthServer _server = new EmbedIOAuthServer(new Uri("http://localhost:5000/callback"), 5000);
+    private static IEnumerable<(T item, int index)> WithIndex<T>(this IEnumerable<T> self)
+    {
+      return self?.Select((item, index) => (item, index)) ?? new List<(T, int)>();
+    }
+
 
     private static void Exiting() => Console.CursorVisible = true;
     public static async Task<int> Main()
     {
       AppDomain.CurrentDomain.ProcessExit += (sender, e) => Exiting();
-
       
-
       if (File.Exists(CredentialsPath))
       {
         await Start();
@@ -53,12 +56,27 @@ namespace Example.CLI.PersistentConfig
       
       
       Console.WriteLine($"Welcome {me.DisplayName} ({me.Id}), you're authenticated!");
-      var recommendations = spotify.Browse.GetRecommendations(new RecommendationsRequest()).Result.Tracks;
-      foreach (var track in recommendations)
+      var playlists = await spotify.PaginateAll(await spotify.Playlists.CurrentUsers().ConfigureAwait(false));
+      Console.WriteLine("Select your desired playlist:");
+      foreach (var (playlist,index) in playlists.WithIndex())
+        {
+          Console.WriteLine($"{index}:{playlist.Name}");
+        }
+      Console.WriteLine("Playlist number:");
+      var selectedPlaylistNumber = Convert.ToInt32(Console.ReadLine());
+      var selectedPlaylistId =  spotify.Playlists.Get(playlists[selectedPlaylistNumber].Id).ToString();
+      var losu = spotify.Playlists.Get(selectedPlaylistId, new PlaylistGetRequest()
       {
-        Console.WriteLine("Rec:{0}",track);
+
+      }).Result.Tracks;
+      
+      foreach (var (playlist,index) in playlists.WithIndex())
+      {
+        Console.WriteLine($"{index}:{playlist.Name}");
       }
-     // var playlists = await spotify.PaginateAll(await spotify.Playlists.CurrentUsers().ConfigureAwait(false));
+      
+      
+      // var playlists = await spotify.PaginateAll(await spotify.Playlists.CurrentUsers().ConfigureAwait(false));
       
      // Console.WriteLine($"Total Playlists in your Account: {playlists.Count}");
 
