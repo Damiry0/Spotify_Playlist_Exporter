@@ -64,18 +64,19 @@ namespace Spotify
         }
       Console.WriteLine("Playlist number:");
       var selectedPlaylistNumber = Convert.ToInt32(Console.ReadLine());
-      var selectedPlaylistId =  spotify.Playlists.Get(playlists[selectedPlaylistNumber].Id).ToString();
-      var losu = spotify.Playlists.Get(selectedPlaylistId, new PlaylistGetRequest()
+      var selectedPlaylistId = playlists[selectedPlaylistNumber].Id;
+      var playlistRequested = await spotify.Playlists.Get(selectedPlaylistId);
+      if (playlistRequested.Tracks != null)
       {
-
-      }).Result.Tracks;
-      
-      foreach (var (playlist,index) in playlists.WithIndex())
-      {
-        Console.WriteLine($"{index}:{playlist.Name}");
+        var losu = playlistRequested.Tracks.Items;
+        var beka = losu[0].Track;
+        foreach (var (playlist,index) in losu.WithIndex())
+        {
+          Console.WriteLine($"{index}:{playlist}");
+        }
       }
-      
-      
+
+
       // var playlists = await spotify.PaginateAll(await spotify.Playlists.CurrentUsers().ConfigureAwait(false));
       
      // Console.WriteLine($"Total Playlists in your Account: {playlists.Count}");
