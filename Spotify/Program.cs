@@ -54,7 +54,7 @@ namespace Spotify
 
       var me = await spotify.UserProfile.Current();
       
-      
+      Console.OutputEncoding = System.Text.Encoding.UTF8;
       Console.WriteLine($"Welcome {me.DisplayName} ({me.Id}), you're authenticated!");
       var playlists = await spotify.PaginateAll(await spotify.Playlists.CurrentUsers().ConfigureAwait(false));
       Console.WriteLine("Select your desired playlist:");
@@ -69,10 +69,9 @@ namespace Spotify
       if (playlistRequested.Tracks != null)
       {
         var losu = playlistRequested.Tracks.Items;
-        var beka = losu[0].Track;
         foreach (var (playlist,index) in losu.WithIndex())
         {
-          Console.WriteLine($"{index}:{playlist}");
+          Console.WriteLine($"{index}:{((FullTrack)playlist.Track).Name}");
         }
       }
 
