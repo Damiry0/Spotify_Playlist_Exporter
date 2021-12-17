@@ -15,10 +15,11 @@ namespace Spotify
 {
     public class YouTubeModule
     {
-        private async Task Run()
+        internal async Task<YouTubeService> GoogleAuth()
         {
             UserCredential credential;
-            using (var stream = new FileStream("client_secrets.json", FileMode.Open, FileAccess.Read))
+            //TODO change to relative path 
+            using (var stream = new FileStream("/home/damiry/Documents/GitHub/Spotify_Playlist_Exporter/Spotify/client_secret_455955939328-trlhj2i7o9ihq8mqc6ulsoqqf06iha4b.apps.googleusercontent.com.json", FileMode.Open, FileAccess.Read))
             {
                 credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
                     GoogleClientSecrets.Load(stream).Secrets,
@@ -34,8 +35,31 @@ namespace Spotify
                 HttpClientInitializer = credential,
                 ApplicationName = this.GetType().ToString()
             });
+            return youtubeService;
+            //  Console.WriteLine("Playlist item id {0} was added to playlist id {1}.", newPlaylistItem.Id, newPlaylist.Id);
+        }
 
+        internal async Task GeneratePlaylist(YouTubeService youTubeService)
+        {
+            var newPlaylist = new Playlist();
+            newPlaylist.Snippet = new PlaylistSnippet()
+            {
+                Title = "Test playlist",
+                Description = "lorem ipsum"
+            };
+            newPlaylist.Status = new PlaylistStatus() {PrivacyStatus = "public"};
+            newPlaylist = await youTubeService.Playlists.Insert(newPlaylist, "snippet,status").ExecuteAsync();
+            // TODO simplify
+            var newPlaylistItem = new PlaylistItem();
+            newPlaylistItem.Snippet = new PlaylistItemSnippet();
+            newPlaylistItem.Snippet.PlaylistId = newPlaylist.Id;
+            newPlaylistItem.Snippet.ResourceId = new ResourceId();
+            newPlaylistItem.Snippet.ResourceId.Kind = "youtube#video";
+            newPlaylistItem.Snippet.ResourceId.VideoId = "GNRMeaz6QRI";
+            newPlaylistItem = await youTubeService.PlaylistItems.Insert(newPlaylistItem, "snippet").ExecuteAsync();
             Console.WriteLine("Playlist item id {0} was added to playlist id {1}.", newPlaylistItem.Id, newPlaylist.Id);
+
+
         }
 
     }
