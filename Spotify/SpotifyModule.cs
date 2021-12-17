@@ -21,7 +21,7 @@ namespace Spotify
         }
         private static void Exiting() => Console.CursorVisible = true;
 
-        internal static async Task Start()
+        internal static async Task<List<string>> Start()
         {
             var json = await File.ReadAllTextAsync(CredentialsPath);
             var token = JsonConvert.DeserializeObject<PKCETokenResponse>(json);
@@ -46,24 +46,12 @@ namespace Spotify
             }
             Console.WriteLine("Playlist number:");
             var selectedPlaylistNumber = Convert.ToInt32(Console.ReadLine());
-            var selectedPlaylistId = playlists[selectedPlaylistNumber].Id;
-            var playlistRequested = await spotify.Playlists.Get(selectedPlaylistId);
-            if (playlistRequested.Tracks != null)
-            {
-                var losu = playlistRequested.Tracks.Items;
-                foreach (var (playlist,index) in losu.WithIndex())
-                {
-                    Console.WriteLine($"{index}:{((FullTrack)playlist.Track).Name}");
-                }
-            }
-
-
-            // var playlists = await spotify.PaginateAll(await spotify.Playlists.CurrentUsers().ConfigureAwait(false));
-      
-            // Console.WriteLine($"Total Playlists in your Account: {playlists.Count}");
-
+            // if (playlistRequested.Tracks != null)
+            var fullPlaylist = await spotify.PaginateAll(await spotify.Playlists.GetItems(playlists[selectedPlaylistNumber].Id).ConfigureAwait(false));
+            var list = fullPlaylist.Select(line => ((FullTrack) line.Track).Name).ToList();
             _server.Dispose();
             Environment.Exit(0);
+            return list;
         }
 
 
