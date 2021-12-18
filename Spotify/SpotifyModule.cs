@@ -46,11 +46,18 @@ namespace Spotify
             }
             Console.WriteLine("Playlist number:");
             var selectedPlaylistNumber = Convert.ToInt32(Console.ReadLine());
+            var selectedPlaylistId = playlists[selectedPlaylistNumber].Id;
             // if (playlistRequested.Tracks != null)
-            var fullPlaylist = await spotify.PaginateAll(await spotify.Playlists.GetItems(playlists[selectedPlaylistNumber].Id).ConfigureAwait(false));
-            var list = fullPlaylist.Select(line => ((FullTrack) line.Track).Name).ToList();
+            var fullPlaylist = await spotify.PaginateAll(await spotify.Playlists.GetItems(selectedPlaylistId).ConfigureAwait(false));
+            var list = new List<string>();
+            foreach (var line in fullPlaylist)
+            {
+                list.Add(((FullTrack) line.Track).Name);
+            }
+
+            var dupa = new string("sd");
             _server.Dispose();
-            Environment.Exit(0);
+          // Environment.Exit(0);
             return list;
         }
 

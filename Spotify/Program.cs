@@ -16,13 +16,13 @@ namespace Spotify
       
       if (File.Exists(CredentialsPath))
       {
-        var based = new YouTubeModule();
-        await based.GeneratePlaylist(await based.GoogleAuth());
-        //  await Start();
+        var list = await Start();
+        var youTubeModule = new YouTubeModule();
+        await youTubeModule.GeneratePlaylist(await youTubeModule.GoogleAuth(),list);
       }
       else
       {
-      //  await StartAuthentication();
+        await StartAuthentication();
       }
 
       Console.ReadKey();
