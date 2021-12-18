@@ -49,15 +49,8 @@ namespace Spotify
             var selectedPlaylistId = playlists[selectedPlaylistNumber].Id;
             // if (playlistRequested.Tracks != null)
             var fullPlaylist = await spotify.PaginateAll(await spotify.Playlists.GetItems(selectedPlaylistId).ConfigureAwait(false));
-            var list = new List<string>();
-            foreach (var line in fullPlaylist)
-            {
-                list.Add(((FullTrack) line.Track).Name);
-            }
-
-            var dupa = new string("sd");
+            var list = fullPlaylist.Select(line => String.Format("{0} {1} \n", ((FullTrack) line.Track).Artists[0].Name, ((FullTrack) line.Track).Name)).ToList();
             _server.Dispose();
-          // Environment.Exit(0);
             return list;
         }
 
@@ -85,7 +78,7 @@ namespace Spotify
                 Scope = new List<string> { UserReadEmail, UserReadPrivate, PlaylistReadPrivate, PlaylistReadCollaborative }
             };
 
-            Uri uri = request.ToUri();
+            var uri = request.ToUri();
             try
             {
                 BrowserUtil.Open(uri);

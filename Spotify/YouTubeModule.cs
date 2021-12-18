@@ -42,7 +42,6 @@ namespace Spotify
                 ApplicationName = this.GetType().ToString()
             });
             return youtubeService;
-            //  Console.WriteLine("Playlist item id {0} was added to playlist id {1}.", newPlaylistItem.Id, newPlaylist.Id);
         }
 
         internal async Task GeneratePlaylist(YouTubeService youTubeService,List<string> list)
@@ -50,35 +49,34 @@ namespace Spotify
             var newPlaylist = new Playlist();
             newPlaylist.Snippet = new PlaylistSnippet()
             {
-                Title = "Test playlist",
-                Description = "lorem ipsum"
+                Title = "Exported Playlist",
+                Description = "Created by:"
             };
             newPlaylist.Status = new PlaylistStatus() {PrivacyStatus = "public"};
             newPlaylist = await youTubeService.Playlists.Insert(newPlaylist, "snippet,status").ExecuteAsync();
             
-            // TODO simplify
+            // simplify and optimize for quota limits
             var searchListRequest = youTubeService.Search.List("snippet");
             
-            List<string> videos = new List<string>();
+            var videos = new List<string>(); 
         
-            for (int i = 0; i<list.Count; i++)
+            foreach (var item in list)
             {
-                searchListRequest.Q = list[i];
-                searchListRequest.MaxResults = 5; 
-                 // Call the search.list method to retrieve results matching the specified query term.
-               var searchListResponse = await searchListRequest.ExecuteAsync();
-               if (searchListResponse.Items[0].Id.Kind == "youtube#video")
-               {
-                   var Item = new PlaylistItem();
-                   Item.Snippet = new PlaylistItemSnippet();
-                   Item.Snippet.PlaylistId = newPlaylist.Id;
-                   Item.Snippet.ResourceId = new ResourceId();
-                   Item.Snippet.ResourceId.Kind = "youtube#video";
-                   Item.Snippet.ResourceId.VideoId = searchListResponse.Items[0].Id.VideoId;
-                   //Item.Id = searchListResponse.Items[0].Id.VideoId;
-                   Item = await youTubeService.PlaylistItems.Insert(Item, "snippet").ExecuteAsync();
-
-               }
+                searchListRequest.Q = item;
+                searchListRequest.MaxResults = 1;
+                var searchListResponse = await searchListRequest.ExecuteAsync();
+                if (searchListResponse.Items[0].Id.Kind != "youtube#video") continue;
+                var playlistItem = new PlaylistItem();
+                playlistItem.Snippet = new PlaylistItemSnippet()
+                {
+                    PlaylistId = newPlaylist.Id,
+                    ResourceId = new ResourceId()
+                    {
+                        Kind = "youtube#video",
+                        VideoId = searchListResponse.Items[0].Id.VideoId,
+                    }
+                };
+                playlistItem = await youTubeService.PlaylistItems.Insert(playlistItem, "snippet").ExecuteAsync();
             }
             Environment.Exit(0);
             
